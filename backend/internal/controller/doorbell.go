@@ -16,11 +16,15 @@ type DoorBellController interface {
 }
 
 type doorBellController struct {
-	srv service.DoorBellService
+	doorBellSrv service.DoorBellService
+	userSrv     service.UserService
 }
 
-func NewDoorBellController(srv service.DoorBellService) DoorBellController {
-	return &doorBellController{srv: srv}
+func NewDoorBellController(doorBellSrv service.DoorBellService, userSrv service.UserService) DoorBellController {
+	return &doorBellController{
+		doorBellSrv: doorBellSrv,
+		userSrv:     userSrv,
+	}
 }
 
 func (c *doorBellController) Ring(ctx *gin.Context) {
@@ -46,14 +50,27 @@ func (c *doorBellController) Ring(ctx *gin.Context) {
 	payload, err := jwt.GetPayload(bearerTokenSplit[1])
 	if err != nil {
 		ctx.AbortWithStatus(http.StatusInternalServerError)
+		return
 	}
 
 	chatID, err := strconv.ParseInt(payload.Subject, 10, 64)
 	if err != nil {
 		ctx.AbortWithStatus(http.StatusInternalServerError)
+		return
 	}
 
-	c.srv.SendMessage(chatID)
+	user, err := c.userSrv.Read(chatID)
+	if err != nil {
+		ctx.AbortWithStatus(http.StatusInternalServerError)
+		return
+	}
+
+	if user.Token != bearerTokenSplit[1] {
+		ctx.AbortWithStatus(http.StatusUnauthorized)
+		return
+	}
+
+	c.doorBellSrv.SendMessage(chatID)
 
 	ctx.String(http.StatusOK, "Message sent.")
 }
