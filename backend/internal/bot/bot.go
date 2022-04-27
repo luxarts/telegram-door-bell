@@ -34,6 +34,7 @@ func New() *tg.Bot {
 func mapCommands(b *tg.Bot) {
 	redisClient := redis.NewClient(&redis.Options{
 		Addr:     os.Getenv(defines.EnvRedisURL),
+		Username: os.Getenv(defines.EnvRedisUsername),
 		Password: os.Getenv(defines.EnvRedisPassword),
 	})
 

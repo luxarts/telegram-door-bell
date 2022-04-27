@@ -22,6 +22,7 @@ func New(b *tg.Bot) *gin.Engine {
 func mapRoutes(r *gin.Engine, b *tg.Bot) {
 	redisClient := redis.NewClient(&redis.Options{
 		Addr:     os.Getenv(defines.EnvRedisURL),
+		Username: os.Getenv(defines.EnvRedisUsername),
 		Password: os.Getenv(defines.EnvRedisPassword),
 	})
 
