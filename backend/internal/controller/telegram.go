@@ -31,7 +31,15 @@ func NewTelegramController(bot *tg.Bot, tokenSrv service.TokenService, userSrv s
 }
 
 func (c *telegramController) Start(m *tg.Message) {
-	c.bot.Send(m.Sender, fmt.Sprintf(defines.MessageStart, os.Getenv(defines.EnvBackendURL)), tg.ModeMarkdown)
+	token := c.tokenSrv.Generate(m.Sender.ID, time.Now())
+	err := c.userSrv.Create(m.Sender.ID, token)
+	if err != nil {
+		log.Printf("Error: %+v\n", err)
+		c.errorRespond(m.Sender)
+		return
+	}
+
+	c.bot.Send(m.Sender, fmt.Sprintf(defines.MessageStart, os.Getenv(defines.EnvBackendURL), token), tg.ModeMarkdown)
 }
 func (c *telegramController) Help(m *tg.Message) {
 	c.bot.Send(m.Sender, fmt.Sprintf(defines.MessageHelp, os.Getenv(defines.EnvBackendURL)), tg.ModeMarkdown)
