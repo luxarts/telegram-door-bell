@@ -17,13 +17,11 @@ type DoorBellController interface {
 
 type doorBellController struct {
 	doorBellSrv service.DoorBellService
-	userSrv     service.UserService
 }
 
-func NewDoorBellController(doorBellSrv service.DoorBellService, userSrv service.UserService) DoorBellController {
+func NewDoorBellController(doorBellSrv service.DoorBellService) DoorBellController {
 	return &doorBellController{
 		doorBellSrv: doorBellSrv,
-		userSrv:     userSrv,
 	}
 }
 
@@ -56,17 +54,6 @@ func (c *doorBellController) Ring(ctx *gin.Context) {
 	chatID, err := strconv.ParseInt(payload.Subject, 10, 64)
 	if err != nil {
 		ctx.AbortWithStatus(http.StatusInternalServerError)
-		return
-	}
-
-	user, err := c.userSrv.Read(chatID)
-	if err != nil {
-		ctx.AbortWithStatus(http.StatusInternalServerError)
-		return
-	}
-
-	if user.Token != bearerTokenSplit[1] {
-		ctx.AbortWithStatus(http.StatusUnauthorized)
 		return
 	}
 
